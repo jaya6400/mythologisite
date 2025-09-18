@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:15
+    container_name: mythology-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mythology
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: mythology-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: mythology
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    command: >
+      sh -c "php artisan migrate &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  frontend:
+    build: ./frontend
+    container_name: mythology-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000/api
+    command: "npm run dev"
+
+volumes:
+  db_data:
