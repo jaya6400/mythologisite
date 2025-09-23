@@ -23,7 +23,7 @@ cd mythologisite
 ### ▶️ Run the project:
 Build and start containers:
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 Frontend will be available at:
 👉 http://localhost:3000
