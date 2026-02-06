@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CultureController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\StoryController;
+use App\Http\Controllers\Api\Admin\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,10 @@ use App\Http\Controllers\Api\StoryController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
 });
 
 Route::get('/cultures/{slug}', [CultureController::class, 'show']);
