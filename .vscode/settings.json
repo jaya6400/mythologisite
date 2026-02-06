@@ -1,0 +1,8 @@
+{
+    "typescript.tsdk": "frontend/node_modules/typescript/lib",
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "eslint.workingDirectories": [
+      { "directory": "frontend", "changeProcesscwd": true }
+    ]
+  }
+  

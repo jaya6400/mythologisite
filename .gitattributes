@@ -1,0 +1,10 @@
+# Auto-detect text files and normalize to LF
+* text=auto eol=lf
+
+# Windows batch files → keep CRLF
+*.bat text eol=crlf
+
+# Shell scripts / Dockerfiles / JS → force LF
+*.sh text eol=lf
+*.Dockerfile text eol=lf
+*.js text eol=lf
