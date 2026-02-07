@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CultureController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\StoryController;
 use App\Http\Controllers\Api\Admin\AuthController;
+use App\Http\Controllers\Api\Admin\AdminCultureController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,12 +19,16 @@ use App\Http\Controllers\Api\Admin\AuthController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::get('/cultures', [AdminCultureController::class, 'index']);
+        Route::post('/cultures', [AdminCultureController::class, 'store']);
+        Route::get('/cultures/{id}', [AdminCultureController::class, 'show']);
+        Route::put('/cultures/{id}', [AdminCultureController::class, 'update']);
+        Route::delete('/cultures/{id}', [AdminCultureController::class, 'destroy']);
+    });
 });
 
 Route::get('/cultures/{slug}', [CultureController::class, 'show']);
