@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CultureTranslation extends Model
 {
+
     protected $fillable = [
         'culture_id',
         'language_id',
@@ -16,5 +17,10 @@ class CultureTranslation extends Model
     public function culture()
     {
         return $this->belongsTo(Culture::class);
+    }
+
+    public function language()
+    {
+        return $this->belongsTo(Language::class);
     }
 }
