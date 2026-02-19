@@ -8,6 +8,7 @@ use App\Models\Culture;
 use App\Models\CultureTranslation;
 use App\Models\Language;
 use App\Http\Requests\StoreCultureTranslationRequest;
+use App\Http\Requests\UpdateCultureTranslationRequest;
 
 class CultureTranslationController extends Controller
 {
@@ -65,24 +66,85 @@ class CultureTranslationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Culture $culture, CultureTranslation $translation)
     {
-        //
+        // Verify translation belongs to this culture
+        if ($translation->culture_id !== $culture->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Translation not found for this culture'
+            ], 404);
+        }
+
+        $translation->load('language');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $translation->id,
+                'language_code' => $translation->language->code,
+                'language_name' => $translation->language->name,
+                'name' => $translation->name,
+                'description' => $translation->description,
+                'created_at' => $translation->created_at,
+                'updated_at' => $translation->updated_at,
+            ]
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(
+        UpdateCultureTranslationRequest $request,
+        Culture $culture,
+        CultureTranslation $translation
+    )
     {
-        //
+        // Verify translation belongs to this culture
+        if ($translation->culture_id !== $culture->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Translation not found for this culture'
+            ], 404);
+        }
+
+        $translation->update($request->validated());
+        $translation->load('language');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Translation updated successfully',
+            'data' => [
+                'id' => $translation->id,
+                'language_code' => $translation->language->code,
+                'language_name' => $translation->language->name,
+                'name' => $translation->name,
+                'description' => $translation->description,
+                'created_at' => $translation->created_at,
+                'updated_at' => $translation->updated_at,
+            ]
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Culture $culture, CultureTranslation $translation)
     {
-        //
+        // Verify translation belongs to this culture
+        if ($translation->culture_id !== $culture->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Translation not found for this culture'
+            ], 404);
+        }
+
+        $translation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Translation deleted successfully'
+        ], 200);
     }
 }
