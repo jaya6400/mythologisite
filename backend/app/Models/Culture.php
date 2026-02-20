@@ -11,10 +11,21 @@ class Culture extends Model
 
     protected $fillable = [
         'slug',
+        'region',
     ];
 
     public function translations()
     {
         return $this->hasMany(CultureTranslation::class);
+    }
+
+    public function stories()
+    {
+        return $this->hasMany(Story::class);
+    }
+
+    public function characters()
+    {
+        return $this->hasMany(Character::class);
     }
 }
