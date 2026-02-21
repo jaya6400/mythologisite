@@ -3,38 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Character;
+use App\Models\Language;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CharacterController extends Controller
 {
     public function show(string $slug, Request $request)
     {
-        $lang = $request->query('lang', 'en');
+        $langCode = $request->query('lang', 'en');
 
-        // Character
-        $character = DB::table('characters')
-            ->where('slug', $slug)
-            ->first();
+        // Get language with fallback
+        $language = Language::where('code', $langCode)->first()
+            ?? Language::where('code', 'en')->first();
 
-        if (!$character) {
-            return response()->json(['message' => 'Character not found'], 404);
-        }
+        // Get character with relationships
+        $character = Character::where('slug', $slug)
+            ->with(['culture', 'translations' => function($query) use ($language) {
+                $query->where('language_id', $language->id);
+            }])
+            ->firstOrFail();
 
-        // Language (fallback to English)
-        $language = DB::table('languages')->where('code', $lang)->first()
-            ?? DB::table('languages')->where('code', 'en')->first();
-
-        // Character translation
-        $translation = DB::table('character_translations')
-            ->where('character_id', $character->id)
-            ->where('language_id', $language->id)
-            ->first();
-
-        // Culture
-        $culture = DB::table('cultures')
-            ->where('id', $character->culture_id)
-            ->first();
+        $translation = $character->translations->first();
 
         return response()->json([
             'slug' => $character->slug,
@@ -44,8 +34,8 @@ class CharacterController extends Controller
             'title' => $translation->title ?? null,
             'description' => $translation->description ?? null,
             'culture' => [
-                'slug' => $culture->slug,
-                'region' => $culture->region,
+                'slug' => $character->culture->slug,
+                'region' => $character->culture->region,
             ],
             'language' => $language->code,
         ]);
@@ -55,33 +45,27 @@ class CharacterController extends Controller
     {
         $langCode = $request->query('lang', 'en');
 
-        // Get language (fallback to English)
-        $language = DB::table('languages')
-            ->where('code', $langCode)
-            ->first();
+        // Get language with fallback
+        $language = Language::where('code', $langCode)->first()
+            ?? Language::where('code', 'en')->first();
 
-        if (!$language) {
-            $language = DB::table('languages')
-                ->where('code', 'en')
-                ->first();
-        }
+        // Get all characters with their translation for the language
+        $characters = Character::with(['translations' => function($query) use ($language) {
+                $query->where('language_id', $language->id);
+            }])
+            ->get()
+            ->map(function($character) {
+                $translation = $character->translations->first();
 
-        $characters = DB::table('characters')
-            ->join(
-                'character_translations',
-                'characters.id',
-                '=',
-                'character_translations.character_id'
-            )
-            ->where('character_translations.language_id', $language->id)
-            ->select(
-                'characters.slug',
-                'characters.type',
-                'character_translations.name',
-                'character_translations.title'
-            )
-            ->orderBy('character_translations.name')
-            ->get();
+                return [
+                    'slug' => $character->slug,
+                    'type' => $character->type,
+                    'name' => $translation->name ?? null,
+                    'title' => $translation->title ?? null,
+                ];
+            })
+            ->sortBy('name')
+            ->values();
 
         return response()->json($characters);
     }
