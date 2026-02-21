@@ -3,30 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Culture;
+use App\Models\Language;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CultureController extends Controller
 {
     public function show(string $slug, Request $request)
     {
-        $lang = $request->query('lang', 'en');
+        $langCode = $request->query('lang', 'en');
 
-        $culture = DB::table('cultures')
-            ->where('slug', $slug)
-            ->first();
+        // Get language with fallback
+        $language = Language::where('code', $langCode)->first()
+            ?? Language::where('code', 'en')->first();
 
-        if (!$culture) {
-            return response()->json(['message' => 'Culture not found'], 404);
-        }
+        // Get culture with translation
+        $culture = Culture::where('slug', $slug)
+            ->with(['translations' => function($query) use ($language) {
+                $query->where('language_id', $language->id);
+            }])
+            ->firstOrFail();
 
-        $language = DB::table('languages')->where('code', $lang)->first()
-            ?? DB::table('languages')->where('code', 'en')->first();
-
-        $translation = DB::table('culture_translations')
-            ->where('culture_id', $culture->id)
-            ->where('language_id', $language->id)
-            ->first();
+        $translation = $culture->translations->first();
 
         return response()->json([
             'slug' => $culture->slug,
@@ -37,4 +35,3 @@ class CultureController extends Controller
         ]);
     }
 }
-

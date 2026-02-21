@@ -3,49 +3,45 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Story;
+use App\Models\Language;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class StoryController extends Controller
 {
     public function show(string $slug, Request $request)
     {
-        $lang = $request->query('lang', 'en');
+        $langCode = $request->query('lang', 'en');
 
-        // Story
-        $story = DB::table('stories')
-            ->where('slug', $slug)
-            ->first();
+        // Get language with fallback
+        $language = Language::where('code', $langCode)->first()
+            ?? Language::where('code', 'en')->first();
 
-        if (!$story) {
-            return response()->json(['message' => 'Story not found'], 404);
-        }
+        // Get story with translation and characters
+        $story = Story::where('slug', $slug)
+            ->with([
+                'translations' => function($query) use ($language) {
+                    $query->where('language_id', $language->id);
+                },
+                'characters.translations' => function($query) use ($language) {
+                    $query->where('language_id', $language->id);
+                }
+            ])
+            ->firstOrFail();
 
-        // Language (fallback to English)
-        $language = DB::table('languages')->where('code', $lang)->first()
-            ?? DB::table('languages')->where('code', 'en')->first();
+        $translation = $story->translations->first();
 
-        // Translation
-        $translation = DB::table('story_translations')
-            ->where('story_id', $story->id)
-            ->where('language_id', $language->id)
-            ->first();
+        // Map characters with their translation and role
+        $characters = $story->characters->map(function($character) {
+            $charTranslation = $character->translations->first();
 
-        // Linked characters
-        $characters = DB::table('story_characters')
-            ->join('characters', 'story_characters.character_id', '=', 'characters.id')
-            ->join('character_translations', function ($join) use ($language) {
-                $join->on('characters.id', '=', 'character_translations.character_id')
-                     ->where('character_translations.language_id', '=', $language->id);
-            })
-            ->where('story_characters.story_id', $story->id)
-            ->select(
-                'characters.slug',
-                'characters.type',
-                'character_translations.name',
-                'story_characters.role'
-            )
-            ->get();
+            return [
+                'slug' => $character->slug,
+                'type' => $character->type,
+                'name' => $charTranslation->name ?? null,
+                'role' => $character->pivot->role,  // From pivot table
+            ];
+        });
 
         return response()->json([
             'slug' => $story->slug,
@@ -58,4 +54,3 @@ class StoryController extends Controller
         ]);
     }
 }
-
