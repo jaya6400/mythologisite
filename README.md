@@ -1,32 +1,83 @@
-# Mythologisite
+# Mythologisite — Multilingual Mythology Platform
 
-A mythology knowledge website with AI agent support and music streaming option.  
-Built with **Laravel (backend)** + **Next.js (frontend)**, running in **Docker**.
+> A content management system and public API for mythology stories, characters, and cultures across languages and regions.
 
 ---
 
-## 🚀 Getting Started
+## 🎯 About
+
+Mythologisite is a full-stack platform designed to preserve and share world mythology through:
+
+- **Admin CMS** for managing multilingual content
+- **Public REST APIs** for apps and websites
+- **Multi-language support** with automatic fallback
+
+**Status:** Active Development
+
+---
+
+## 🛠️ Tech Stack
+
+**Backend:** Laravel, PostgreSQL, Sanctum Auth, Docker  
+**Frontend:** Next.js, TailwindCSS  
+**DevOps:** Docker Compose, Git
+
+---
+
+## ✨ Features
+
+- Role-based admin authentication
+- Multilingual content system (cultures, stories, characters)
+- RESTful APIs with locale-aware responses
+- Translation management workflows
+- Normalized database with relational integrity
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- [Docker](https://www.docker.com/) and Docker Compose installed  
-- No need to install Node.js or PHP locally (handled inside containers)
+- Docker & Docker Compose
 
----
-
-### 🛠️ Setup
-Clone the repository:
+### Setup
 ```bash
 git clone https://github.com/jaya6400/mythologisite.git
 cd mythologisite
-```
 
-### ▶️ Run the project:
-Build and start containers:
-```bash
+# Start services
 docker-compose up --build -d
-```
-Frontend will be available at:
-👉 http://localhost:3000
 
-Backend API will be available at:
-👉 http://localhost:8000
+# Run migrations and seed
+docker exec -it mythology-backend php artisan migrate
+docker exec -it mythology-backend php artisan db:seed
+```
+
+**Access:**
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+
+---
+
+## 📂 Structure
+```
+mythologisite/
+├── backend/          # Laravel API
+├── frontend/         # Next.js UI
+└── docker-compose.yml
+```
+
+---
+
+## 🔗 API Endpoints
+```
+GET  /api/cultures/{slug}?lang=en
+GET  /api/stories/{slug}?lang=hi
+GET  /api/characters
+```
+
+Full API documentation: in progress.
+
+---
+
+**Built by Jaya Dubey**  
+[LinkedIn](https://www.linkedin.com/in/jaya6400/) | [Portfolio](https://jaya-dubey-resume.netlify.app/) | jayadubey6402@gmail.com
